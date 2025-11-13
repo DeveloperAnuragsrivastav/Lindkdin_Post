@@ -32,7 +32,7 @@ const Index = () => {
   const { savedConfig, loading: configLoading, saveConfig } = useSavedConfig();
   const { addSubmission } = useSubmissions();
   
-  const WEBHOOK_URL = "https://n8n.gignaati.com/webhook-test/07e74f76-8ca8-4b43-87f9-0d95a0ee8bae";
+  const WEBHOOK_URL = "https://n8n.gignaati.com/webhook/07e74f76-8ca8-4b43-87f9-0d95a0ee8bae";
   useEffect(() => {
     if (savedConfig && !configLoading) {
       setPrompt(savedConfig.prompt);
