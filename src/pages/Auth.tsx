@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
-import { logger } from "@/lib/logger";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -60,7 +59,6 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes("already registered")) {
-          logger.info('Signup attempt with existing account', { email: email.substring(0, 5) });
           toast({
             title: "Account Exists",
             description: "This email is already registered. Please sign in instead.",
@@ -70,7 +68,6 @@ const Auth = () => {
           throw error;
         }
       } else {
-        logger.info('User signed up successfully', { email: email.substring(0, 5) });
         toast({
           title: "Success",
           description: "Account created successfully! You can now sign in.",
@@ -78,7 +75,7 @@ const Auth = () => {
         // Auto-confirm is enabled, so user can sign in immediately
       }
     } catch (error: any) {
-      logger.error("Signup error", { email: email.substring(0, 5) }, error);
+      console.error("Signup error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create account",
@@ -110,7 +107,6 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          logger.warn('Invalid login attempt', { email: email.substring(0, 5) });
           toast({
             title: "Error",
             description: "Invalid email or password",
@@ -120,7 +116,6 @@ const Auth = () => {
           throw error;
         }
       } else {
-        logger.info('User signed in successfully', { email: email.substring(0, 5) });
         toast({
           title: "Success",
           description: "Signed in successfully!",
@@ -128,7 +123,7 @@ const Auth = () => {
         navigate("/");
       }
     } catch (error: any) {
-      logger.error("Signin error", { email: email.substring(0, 5) }, error);
+      console.error("Signin error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to sign in",

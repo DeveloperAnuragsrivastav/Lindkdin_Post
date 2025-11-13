@@ -14,9 +14,6 @@ import configAudio from "@/assets/configuration-audio.mp3";
 import { useTemplates } from "@/hooks/useTemplates";
 import { useSavedConfig } from "@/hooks/useSavedConfig";
 import { useSubmissions } from "@/hooks/useSubmissions";
-import { webhookService } from "@/lib/webhookService";
-import { logger } from "@/lib/logger";
-
 const Index = () => {
   const [prompt, setPrompt] = useState("");
   const [topic, setTopic] = useState("");
@@ -35,6 +32,7 @@ const Index = () => {
   const { savedConfig, loading: configLoading, saveConfig } = useSavedConfig();
   const { addSubmission } = useSubmissions();
   
+  const WEBHOOK_URL = "https://n8n.gignaati.com/webhook-test/07e74f76-8ca8-4b43-87f9-0d95a0ee8bae";
   useEffect(() => {
     if (savedConfig && !configLoading) {
       setPrompt(savedConfig.prompt);
@@ -42,7 +40,6 @@ const Index = () => {
       setIsEditing(false);
     }
   }, [savedConfig, configLoading]);
-
   const handleSave = async () => {
     if (!prompt.trim() || !topic.trim()) {
       toast({
@@ -55,7 +52,6 @@ const Index = () => {
     await saveConfig(prompt, topic);
     setIsEditing(false);
   };
-
   const handleSubmit = async () => {
     if (!prompt.trim() || !topic.trim()) {
       toast({
@@ -65,55 +61,34 @@ const Index = () => {
       });
       return;
     }
-    
     setIsSubmitting(true);
-    
     try {
-      logger.info('Starting webhook submission', {
-        promptLength: prompt.length,
-        topicLength: topic.length,
+      const response = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          topic: topic,
+          timestamp: new Date().toISOString()
+        })
       });
-
-      const result = await webhookService.submit({
-        prompt,
-        topic,
-        timestamp: new Date().toISOString(),
-      });
-
-      if (result.success) {
+      if (response.ok) {
         await addSubmission(prompt, topic, "success");
-        
-        logger.info('Webhook submission successful', {
-          dataSize: prompt.length + topic.length,
-        });
-
         toast({
           title: "Success",
-          description: "Data sent successfully and saved to database"
+          description: "Data sent to webhook successfully"
         });
       } else {
         await addSubmission(prompt, topic, "failed");
-        
-        logger.warn('Webhook submission failed', {
-          error: result.error,
-        });
-
-        toast({
-          title: "Warning",
-          description: result.error || "Failed to send data to webhook, but data was saved locally.",
-          variant: "destructive"
-        });
+        throw new Error("Failed to send data");
       }
     } catch (error) {
-      logger.error('Unexpected error during webhook submission', {
-        errorType: error instanceof Error ? error.constructor.name : typeof error,
-      }, error instanceof Error ? error : new Error(String(error)));
-
-      await addSubmission(prompt, topic, "failed");
-
+      console.error("Error sending to webhook:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "Failed to send data to webhook. Please try again.",
         variant: "destructive"
       });
     } finally {

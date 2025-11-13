@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/logger";
 
 export interface Template {
   id: string;
@@ -29,9 +28,8 @@ export const useTemplates = () => {
 
       if (error) throw error;
       setTemplates(data || []);
-      logger.debug('Templates fetched successfully', { count: data?.length || 0, userId: user.id });
     } catch (error: any) {
-      logger.error("Error fetching templates", { userId: user?.id }, error);
+      console.error("Error fetching templates:", error);
       toast({
         title: "Error",
         description: "Failed to load templates",
@@ -55,15 +53,12 @@ export const useTemplates = () => {
       if (error) throw error;
 
       await fetchTemplates();
-      
-      logger.info('Template updated successfully', { templateId: id, userId: user.id });
-
       toast({
         title: "Template Updated",
         description: "Your template has been saved successfully",
       });
     } catch (error: any) {
-      logger.error("Error updating template", { templateId: id, userId: user?.id }, error);
+      console.error("Error updating template:", error);
       toast({
         title: "Error",
         description: "Failed to update template",
