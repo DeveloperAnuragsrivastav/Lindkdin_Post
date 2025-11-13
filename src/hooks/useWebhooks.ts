@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 export interface Webhook {
   id: string;
@@ -31,8 +32,9 @@ export const useWebhooks = () => {
 
       if (error) throw error;
       setWebhooks(data || []);
+      logger.debug('Webhooks fetched successfully', { count: data?.length || 0, userId: user.id });
     } catch (error: any) {
-      console.error("Error fetching webhooks:", error);
+      logger.error("Error fetching webhooks", { userId: user?.id }, error);
       toast({
         title: "Error",
         description: "Failed to load webhooks",
@@ -57,12 +59,18 @@ export const useWebhooks = () => {
 
       if (error) throw error;
 
+      logger.info('Webhook created successfully', {
+        userId: user.id,
+        webhookName: name,
+        eventsCount: events.length,
+      });
+
       toast({
         title: "Webhook Created",
         description: "Your webhook has been created successfully",
       });
     } catch (error: any) {
-      console.error("Error creating webhook:", error);
+      logger.error("Error creating webhook", { userId: user?.id, webhookName: name }, error);
       toast({
         title: "Error",
         description: "Failed to create webhook",

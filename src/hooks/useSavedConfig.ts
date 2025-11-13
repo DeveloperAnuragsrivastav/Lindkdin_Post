@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 export interface SavedConfig {
   prompt: string;
@@ -26,8 +27,9 @@ export const useSavedConfig = () => {
 
       if (error) throw error;
       setSavedConfig(data);
+      logger.debug('Saved config fetched', { found: !!data, userId: user.id });
     } catch (error: any) {
-      console.error("Error fetching config:", error);
+      logger.error("Error fetching config", { userId: user?.id }, error);
     } finally {
       setLoading(false);
     }
@@ -51,12 +53,19 @@ export const useSavedConfig = () => {
       if (error) throw error;
 
       setSavedConfig({ prompt, topic });
+      
+      logger.info('Config saved successfully', {
+        userId: user.id,
+        promptLength: prompt.length,
+        topicLength: topic.length,
+      });
+
       toast({
         title: "Saved Successfully",
         description: "Your prompt and topic have been saved",
       });
     } catch (error: any) {
-      console.error("Error saving config:", error);
+      logger.error("Error saving config", { userId: user?.id }, error);
       toast({
         title: "Error",
         description: "Failed to save configuration",

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 export interface Profile {
   id: string;
@@ -27,8 +28,9 @@ export const useProfiles = () => {
 
       if (error) throw error;
       setProfiles(data || []);
+      logger.debug('Profiles fetched successfully', { count: data?.length || 0 });
     } catch (error: any) {
-      console.error("Error fetching profiles:", error);
+      logger.error("Error fetching profiles", { userId: user?.id }, error);
       toast({
         title: "Error",
         description: "Failed to load users",
@@ -48,12 +50,14 @@ export const useProfiles = () => {
 
       if (error) throw error;
 
+      logger.info('Profile deleted successfully', { deletedId: id, userId: user.id });
+
       toast({
         title: "User Deleted",
         description: "The user has been deleted successfully",
       });
     } catch (error: any) {
-      console.error("Error deleting user:", error);
+      logger.error("Error deleting user", { userId: user?.id, targetId: id }, error);
       toast({
         title: "Error",
         description: "Failed to delete user. You may not have permission.",

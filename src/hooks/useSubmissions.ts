@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 export interface Submission {
   id: string;
@@ -29,8 +30,9 @@ export const useSubmissions = () => {
 
       if (error) throw error;
       setSubmissions(data || []);
+      logger.debug('Submissions fetched successfully', { count: data?.length || 0, userId: user.id });
     } catch (error: any) {
-      console.error("Error fetching submissions:", error);
+      logger.error("Error fetching submissions", { userId: user?.id }, error);
       toast({
         title: "Error",
         description: "Failed to load submissions",
@@ -53,9 +55,16 @@ export const useSubmissions = () => {
       });
 
       if (error) throw error;
+      
+      logger.info('Submission added successfully', {
+        userId: user.id,
+        status,
+        promptLength: prompt.length,
+      });
+
       await fetchSubmissions();
     } catch (error: any) {
-      console.error("Error adding submission:", error);
+      logger.error("Error adding submission", { userId: user?.id, status }, error);
       toast({
         title: "Error",
         description: "Failed to record submission",
